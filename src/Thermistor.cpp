@@ -70,3 +70,129 @@ double Thermistor::readCelsiusAvg()
 {
     return calculateSteinhart(readThermistorResistanceAvg()) - 273.15;
 }
+
+ThermistorArray::ThermistorArray(){
+    THARRAYSettings _set;
+    _set.num_thermistors = 16;
+    _set.sig = A0;
+    _set.en = 7;
+    _set.s0 = 8;
+    _set.s1 = 9;
+    _set.s2 = 10;
+    _set.s3 = 11;
+    updateArraySettings(_set);
+    initThermistors();
+}
+
+ThermistorArray::ThermistorArray(uint8_t num, uint8_t sig, uint8_t en, uint8_t s0, uint8_t s1, uint8_t s2, uint8_t s3){
+    THARRAYSettings _set;
+    _set.num_thermistors = num;
+    _set.sig = sig;
+    _set.en = en;
+    _set.s0 = s0;
+    _set.s1 = s1;
+    _set.s2 = s2;
+    _set.s3 = s3;
+    updateArraySettings(_set);
+    initThermistors();
+}
+
+ThermistorArray::ThermistorArray(THARRAYSettings settings){
+    updateArraySettings(settings);
+    initThermistors();
+}
+
+void ThermistorArray::initThermistors()
+{
+    for(int i = 0; i < _settings.num_thermistors; i++)
+    {
+        _array[i] = Thermistor();
+        _array[i].settings.thermistor_pin = _settings.sig;
+    }
+}
+
+void ThermistorArray::switchChannels(uint8_t num)
+{
+    digitalWrite(_settings.en, LOW);
+    digitalWrite(_settings.s0, num & 0x0001);
+    num >>=1;
+    digitalWrite(_settings.s1, num & 0x0001);
+    num >>=1;
+    digitalWrite(_settings.s2, num & 0x0001);
+    num >>=1;
+    digitalWrite(_settings.s3, num & 0x0001);
+}
+
+THARRAYSettings ThermistorArray::getArraySettings(){
+    return _settings;
+}
+
+void ThermistorArray::updateArraySettings(THARRAYSettings settings)
+{
+    _settings = settings;
+
+    pinMode(_settings.sig, INPUT);
+    pinMode(_settings.en, OUTPUT);
+    pinMode(_settings.s0, OUTPUT);
+    pinMode(_settings.s1, OUTPUT);
+    pinMode(_settings.s2, OUTPUT);
+    pinMode(_settings.s3, OUTPUT);
+
+    digitalWrite(_settings.en, LOW);
+}
+
+THSettings ThermistorArray::getThermistorSettings(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    return _array[channel].settings;
+
+}
+
+void ThermistorArray::updateThermistorSettings(uint8_t channel, THSettings settings)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    _array[channel].settings = settings;
+
+}
+
+double ThermistorArray::readKelvin(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    switchChannels(channel);
+    return _array[channel].readKelvin();
+}
+
+double ThermistorArray::readKelvinAvg(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    switchChannels(channel);
+    return _array[channel].readKelvinAvg();
+}
+
+double ThermistorArray::readCelsius(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    switchChannels(channel);
+    return _array[channel].readCelsius();
+}
+
+double ThermistorArray::readCelsiusAvg(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    switchChannels(channel);
+    return _array[channel].readCelsiusAvg();
+}
+
+double ThermistorArray::readResistance(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    switchChannels(channel);
+    return _array[channel].readResistance();
+}
+
+double ThermistorArray::readResistanceAvg(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    switchChannels(channel);
+    return _array[channel].readResistanceAvg();
+}

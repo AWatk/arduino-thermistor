@@ -1,15 +1,14 @@
 #include "Thermistor.h"
 
-Thermistor thermistor;
+Thermistor therm;
 
 void setup(void){
     Serial.begin(115200);
-    analogReference(EXTERNAL);
 }
 
 void loop(void){
-    
-    serial.println(Thermistor.readCelsiusAvg());
+
+    Serial.println(therm.readCelsiusAvg());
     delay(1000);
 
 }

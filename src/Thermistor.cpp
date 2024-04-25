@@ -26,7 +26,6 @@ inline double Thermistor::readThermistorResistanceAvg()
     for (int i = 0; i < settings.num_samples; ++i)
     {
         sum += readThermistorResistance();
-        delay(settings.read_delay);
     }
     return sum / settings.num_samples;
     
@@ -69,6 +68,28 @@ double Thermistor::readCelsius()
 double Thermistor::readCelsiusAvg()
 {
     return calculateSteinhart(readThermistorResistanceAvg()) - 273.15;
+}
+
+double Thermistor::readCelsiusFiltered()
+{
+    return filter(calculateSteinhart(readThermistorResistance()) - 273.15);
+}
+
+double Thermistor::filter(double input)
+{
+    unsigned long timestamp = micros();
+  float dt = (timestamp - timestamp_prev)*1e-6f;
+  // quick fix for strange cases (micros overflow)
+  if (dt < 0.0f || dt > 0.5f) dt = 1e-3f;
+
+  // calculate the filtering 
+  float alpha = Tf/(Tf + dt);
+  float y = alpha*y_prev + (1.0f - alpha)*input;
+
+  // save the variables
+  y_prev = y;
+  timestamp_prev = timestamp;
+  return y;
 }
 
 ThermistorArray::ThermistorArray(){
@@ -195,4 +216,11 @@ double ThermistorArray::readResistanceAvg(uint8_t channel)
     channel = channel >= _settings.num_thermistors ? 0 : channel;
     switchChannels(channel);
     return _array[channel].readResistanceAvg();
+}
+
+double ThermistorArray::readCelsiusFiltered(uint8_t channel)
+{
+    channel = channel >= _settings.num_thermistors ? 0 : channel;
+    switchChannels(channel);
+    return _array[channel].readCelsiusFiltered();
 }

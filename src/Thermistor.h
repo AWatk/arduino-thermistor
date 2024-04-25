@@ -32,11 +32,16 @@ class Thermistor
     double readCelsiusAvg();
     double readResistance();
     double readResistanceAvg();
+    double readCelsiusFiltered();
 
     private:
     inline double readThermistorResistance();
     inline double readThermistorResistanceAvg();
-    inline double calculateSteinhart(double resistance);    
+    inline double calculateSteinhart(double resistance);
+    unsigned long timestamp_prev;
+    float Tf = 0.03;
+    float y_prev;
+    double filter(double input);   
 
 };
 
@@ -71,6 +76,7 @@ class ThermistorArray
     double readCelsiusAvg(uint8_t channel);
     double readResistance(uint8_t channel);
     double readResistanceAvg(uint8_t channel);
+    double readCelsiusFiltered(uint8_t channel);
     
     private:
     Thermistor _array[16];
